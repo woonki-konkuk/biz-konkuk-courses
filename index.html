@@ -85,6 +85,7 @@ main{padding:26px 0 80px}
 .matrix thead th{padding-bottom:8px;border-bottom:1px solid var(--ink);font-size:12px;font-weight:600;color:var(--sub)}
 .matrix tbody th{font-family:var(--mono);font-size:13.5px;font-weight:500;color:var(--green);white-space:nowrap}
 .matrix td.none{color:var(--ghost)}
+.matrix td.absent{color:var(--faint);font-size:13px}
 
 /* 문의 (홈페이지 푸터 색) */
 .contact{background:var(--footer);color:rgba(255,255,255,.7);font-size:14px}
@@ -317,8 +318,12 @@ function subjectHtml(name){
     credits.length && `${credits.map(c => escapeHtml(c)).join('/')}학점`
   ].filter(Boolean).join(' · ');
   const head = `<tr><th scope="col">입학년도</th>${departments.map(d => `<th scope="col">${escapeHtml(d)}</th>`).join('')}</tr>`;
-  const body = lines.map(l => `<tr><th scope="row">${l.from === l.to ? l.from : `${l.from}–${l.to}`}</th>${
-    l.cells.map(c => c ? `<td><span class="tag">${escapeHtml(c)}</span></td>` : '<td class="none">—</td>').join('')}</tr>`).join('');
+  const body = lines.map(l => {
+    const year = `<th scope="row">${l.from === l.to ? l.from : `${l.from}–${l.to}`}</th>`;
+    // 그 입학년도엔 어느 학과에도 없으면 칸을 합쳐 글로 알려 준다
+    if(l.cells.every(c => !c)) return `<tr>${year}<td class="absent" colspan="${departments.length}">교육과정에 없음</td></tr>`;
+    return `<tr>${year}${l.cells.map(c => c ? `<td><span class="tag">${escapeHtml(c)}</span></td>` : '<td class="none">—</td>').join('')}</tr>`;
+  }).join('');
   return `
     <article class="subject">
       <div class="subject-name">${escapeHtml(name)}</div>
